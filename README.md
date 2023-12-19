@@ -3,7 +3,7 @@
 1. [요약](#요약)
 2. [개요](#개요)
 3. [배경 및 목적](#배경-및-목적)
-4. [프로세스 정의 및 구성](#프로세스-정의-및-구성)
+4. [프로젝트 정의 및 구성](#프로젝트-정의-및-구성)
 5. [객체 탐지](#객체-탐지)
 6. [차선 검출](#차선-검출)
 7. [코드](#코드)
@@ -51,24 +51,50 @@
 - 자율 주행차에서 발생할 수 있는 비상 상황을 On-Device 기술을 통해 대비하려고 함.
 - [배경](#배경)에서 언급한 이슈들을 보완하기 위해 "카메라"만을 사용한 "On-Device" 형태의 프로그램을 개발하고자 함.
 
-## 프로세스 정의 및 구성
-본 프로세스 정의에 앞서 주행을 위한 트랙(이하 "트랙")을 직접 설계하고 이에 대한 프로세스를 정의함.
+## 프로젝트 정의 및 구성
+본 프로젝트 진행에 앞서 주행을 위한 트랙(이하 "트랙")을 직접 설계하고 이에 대한 프로세스를 정의함.
 
-### 객체 탐지 프로세스
-: RC카 전방의 객체(다른 차량, 주행 신호 등)를 탐지하고 주행 여부를 판단하는 프로세스
+### 트랙 정의
 
-- 객체 탐지 프로세스 흐름도
-![객체 탐지 프로세스 흐름도](./docs/images/객체%20탐지%20프로세스%20흐름도.png)
+### 프로세스 정의
+|프로세스명|객체 탐지 프로세스|차선 검출 프로세스|
+|:---:|:---:|:---:|
+|흐름도|![객체 탐지 프로세스 흐름도](./docs/images/객체%20탐지%20프로세스%20흐름도.png)|![차선 검출 프로세스 흐름도](./docs/images/차선%20검출%20프로세스%20흐름도.png)|
+|정의|RC카 전방의 객체(다른 차량, 주행 신호 등)를 탐지하고 주행 여부를 판단하는 프로세스|트랙에 존재하는 차선을 검출하여 주행 방향(앞바퀴 각도)을 결정하는 프로세스|
+|사용기술|DAMO-YOLO<sup>[1](#footnote_1)</sup>|HSV 변환|
 
-### 차선 검출 프로세스
-: 트랙에 존재하는 차선을 검출하여 주행 방향(앞바퀴 각도)을 결정하는 프로세스
-
-- 차선 검출 프로세스 흐름도
-![차선 검출 프로세스 흐름도](./docs/images/차선%20검출%20프로세스%20흐름도.png)
 
 ## 객체 탐지
 ### 데이터 구축
-TBU
+0. 데이터 정의  
+    정의한 트랙에서 탐지해야하는 객체는 다음과 같음.
+    <!-- |Object|Image|Desc|
+    |:---:|:---:|:---|
+    |정지선(stop_line)|![stop_line](./docs/images/stop_line.jpg)||
+    |차량(car)|![car](./docs/images/car.jpg)||
+    |정지 신호(red_light)|![red_light](./docs/images/red_light.jpg)||
+    |좌회전 신호(left_light)|![left_light](./docs/images/left_light.jpg)||
+    |직진 신호(green_light)|![green_light](./docs/images/green_light.jpg)||
+     -->
+    |Object|정지선(stop_line)|차량(car)|정지 신호(red_light)|좌회전 신호(left_light)|직진 신호(green_light)|
+    |:---:|:---:|:---:|:---:|:---:|:---:|
+    |image|![stop_line](./docs/images/stop_line.jpg)|![car](./docs/images/car.jpg)|![red_light](./docs/images/red_light.jpg)|![left_light](./docs/images/left_light.jpg)|![green_light](./docs/images/green_light.jpg)|
+1. 데이터 수집  
+    - 아래 코드를 통해 2000개를 원시 데이터를 수집함.
+        ```python
+        python3 tools/collect_data.py
+        ```
+2. 데이터 검토
+    - 이후, 아래 조건에 충족될 경우 데이터를 제거하여 730 건의 원천 데이터를 확보함.
+        1. 중복
+        2. 초점이 안 맞음.
+        3. 객체가 존재하지 않음.
+3. 데이터 가공  
+    - 아래 코드를 통해 labeling tools을 실행하고 라벨링을 진행함.
+        ```python
+        python3 tools/annotation_tool.py
+        ```
+
 ### 모델 선정 및 학습
 TBU
 
@@ -86,5 +112,7 @@ TBU
 - 최적화 시도
 
 ## reference
-- [Xu, Xianzhe, et al. "Damo-yolo: A report on real-time object detection design." arXiv preprint arXiv:2211.15444 (2022).](https://arxiv.org/abs/2211.15444)
+- <a name="footnote_1">1</a> [Xu, Xianzhe, et al. "Damo-yolo: A report on real-time object detection design." arXiv preprint arXiv:2211.15444 (2022).](https://arxiv.org/abs/2211.15444)
 - [DAMO-YOLO](https://github.com/tinyvision/DAMO-YOLO)
+- [정준용, "자율주행차 키트 deep-mini로 배우는 자율주행 알고리즘", WikiDocs (May 17, 2023)](https://wikidocs.net/book/9493)
+- [BINARY-ESG](https://github.com/LeeJinSoo-BIN/BINARY-ESG)
