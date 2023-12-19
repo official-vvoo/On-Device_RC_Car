@@ -2,3 +2,6 @@
 
 ssafy_project/
 venv/
+
+__pycache__/
+*.pyc

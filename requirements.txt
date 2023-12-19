@@ -1,0 +1,13 @@
+timm
+omegaconf
+numpy
+opencv_python
+loguru
+scikit-image
+tqdm
+Pillow
+thop
+tabulate
+easydict
+sense-hat
+python3-smbus
