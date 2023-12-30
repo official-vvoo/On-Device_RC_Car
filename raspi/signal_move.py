@@ -3,7 +3,7 @@ from Raspi_MotorHAT import Raspi_MotorHAT, Raspi_DCMotor
 from time import sleep
 #from sense_hat import SenseHat
 
-class Signal_move:
+class SignalMove:
     def __init__(self):
         self.motor_addr = 0x6f
         self.nfm_motor = 2

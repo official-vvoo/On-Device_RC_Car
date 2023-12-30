@@ -22,25 +22,31 @@ import time
 from raspi.Raspi_PWM_Servo_Driver import PWM
 from raspi.jd_opencv_lane_detect import JdOpencvLaneDetect
 from raspi.Raspi_MotorHAT import Raspi_MotorHAT, Raspi_DCMotor
+from raspi.signal_move import SignalMove
 
 from time import sleep
 from sense_hat import SenseHat
-blue = [0, 0, 255]  # None
-green = [0, 255, 0]  # Blue
+BLUE = [0, 0, 255]  # None
+GREEN = [0, 255, 0]  # Blue
 
-pix_map = [[3, 3], [3, 4], [4, 3], [4, 4]]
+PIX_MAP = [[3, 3], [3, 4], [4, 3], [4, 4]]
+SERVO_PIN = 14
+SERVO_VALUE = 425
+SERVO_DEFAULT = [310, 425, 500]
+
+
+IMAGES=['png', 'jpg']
+VIDEOS=['mp4', 'avi']
 
 mh = Raspi_MotorHAT(addr=0x6f)
-myMotor = mh.getMotor(2)
+my_motor = mh.getMotor(2)
 servo_pwm = PWM(0x6F)
 servo_pwm.setPWMFreq(50)
 
 
-servo_pin = 14
-servo_value = 425
-servo_default = [310, 425, 500]
 
-servo_pwm.setPWM(servo_pin, 0, servo_default[1])
+
+servo_pwm.setPWM(SERVO_PIN, 0, SERVO_DEFAULT[1])
 
 '''
     myMotor.setSpeed(150)
@@ -52,10 +58,8 @@ servo_pwm.setPWM(servo_pin, 0, servo_default[1])
 
 
 
-IMAGES=['png', 'jpg']
-VIDEOS=['mp4', 'avi']
 
-from signal_move import Signal_move
+
 class Infer():
     def __init__(self, config, infer_size=[640,640], device='cuda', output_dir='./', ckpt=None, end2end=False):
 
@@ -410,7 +414,7 @@ def set_servo(angle):
 # Start motor 
 
 def pix_change(sense, color):
-    for x, y in pix_map:
+    for x, y in PIX_MAP:
         sense.set_pixel(x, y, color)
 
 
@@ -433,34 +437,35 @@ def read_frames(cap):
             frame = current_frame
             ret = current_ret
 
-
-# "categories": [
-#         {
-#             "id": 1,
-#             "name": "stop_line",
-#             "supercategory": "lane_marking"
-#         },
-#         {
-#             "id": 2,
-#             "name": "car",
-#             "supercategory": "vehicle"
-#         },
-#         {
-#             "id": 3,
-#             "name": "red_light",
-#             "supercategory": "traffic_sign"
-#         },
-#         {
-#             "id": 4,
-#             "name": "left_light",
-#             "supercategory": "traffic_sign"
-#         },
-#         {
-#             "id": 5,
-#             "name": "green_light",
-#             "supercategory": "traffic_sign"
-#         }
-#     ]
+'''
+"categories": [
+        {
+            "id": 1,
+            "name": "stop_line",
+            "supercategory": "lane_marking"
+        },
+        {
+            "id": 2,
+            "name": "car",
+            "supercategory": "vehicle"
+        },
+        {
+            "id": 3,
+            "name": "red_light",
+            "supercategory": "traffic_sign"
+        },
+        {
+            "id": 4,
+            "name": "left_light",
+            "supercategory": "traffic_sign"
+        },
+        {
+            "id": 5,
+            "name": "green_light",
+            "supercategory": "traffic_sign"
+        }
+    ]
+'''
 def check_object(model):
     global state
     before_type = [0,0,0,0,0,0]
@@ -534,17 +539,11 @@ def check_object(model):
 def main():
     args = make_parser().parse_args()
     config = parse_config(args.config_file)
-    input_type = args.input_type
+
     args.save_result = False
     print(args)
     infer_engine = Infer(config, infer_size=args.infer_size, device=args.device,
         output_dir=args.output_dir, ckpt=args.engine, end2end=args.end2end)   
-
-    
-
-    
-    servo_offset = 1
-
 
     cap = cv2.VideoCapture(0)    
     cap.set(3, 640)
@@ -559,7 +558,7 @@ def main():
     global state
 
     cv_detector = JdOpencvLaneDetect()
-    singalExcutor = Signal_move()
+    singalExcutor = SignalMove()
     sense = SenseHat()
     sense.stick.direction_middle = stop
 
@@ -574,8 +573,8 @@ def main():
             pass
             # print("nothing")
             #singalExcutor.go_straight(0.1)
-            myMotor.setSpeed(60)
-            myMotor.run(Raspi_MotorHAT.FORWARD)
+            my_motor.setSpeed(60)
+            my_motor.run(Raspi_MotorHAT.FORWARD)
         elif current_state == 1:
             singalExcutor.stop_move()
         elif current_state == 2:
@@ -592,12 +591,12 @@ def main():
         angle, img_angle = cv_detector.get_steering_angle(img_lane, lanes, now_angle)
         if img_angle is None:
             print("can't find lane...")
-            pix_change(sense, blue)
+            pix_change(sense, BLUE)
             pass
         else:
             #cv2.imshow('lane', img_angle)
             set_servo(angle)
-            pix_change(sense, green)
+            pix_change(sense, GREEN)
 
             #print("get anlge value :", angle, "\nnow pwm value :", servo_value, "\n")
         # myMotor.setSpeed(100)
